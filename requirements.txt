@@ -1,0 +1,12 @@
+Pillow 
+python-magic 
+moviepy
+anthropic==0.33.0
+anthropic-bedrock==0.8.0
+opencv-python-headless
+boto3>=1.35.83
+gradio>=4.44.1
+ffmpeg-python
+qrcode
+python-dotenv
+httpx==0.27.2
