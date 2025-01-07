@@ -159,21 +159,21 @@ def _generate_image_nova(model_id, body):
     return image_bytes
 
 
-def generate_image_nova(user_prompt,video_type_radio):
+def generate_image_nova(user_prompt,video_type_radio,num_shot):
     global system_division_2
     global system_division_3
     global system_sequnce
     print("单镜图像生成")
-    # shots = get_divison_shots(system_division_3,user_prompt)
+    shots = get_divison_shots(system_division_3.replace("<num_shot>",str(num_shot)),user_prompt)
     # prompts = [ f"{p['prompt']} {p['composition']} angle:{p['angle']} {p['distance']} {p['lighting']} {' '.join(p['style_tags'])}" for p in shots['shots']]
     # neg_prompts = [p['negative_prompt'] for p in shots['shots']]
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     output_dir=os.path.join('shot_images',timestamp)
     os.makedirs(output_dir, exist_ok=True)
     # 保存shots到json文件
-    # shots_json_path = os.path.join(output_dir, f'{timestamp}_shots.json')
-    # with open(shots_json_path, 'w', encoding='utf-8') as f:
-    #     json.dump(shots, f, ensure_ascii=False, indent=2)
+    shots_json_path = os.path.join(output_dir, f'{timestamp}_shots.json')
+    with open(shots_json_path, 'w', encoding='utf-8') as f:
+        json.dump(shots, f, ensure_ascii=False, indent=2)
 
 
     
@@ -378,15 +378,16 @@ def create_sequence_video(gradio_image_files,video_task_id=None):
     sequence_number = 0 
     
     for shot in shots['shots']:
-        logger.info(shot['description'])
         #### 连续视频只有第一张图片
-        if sequence_number == 0:
-            ref_img = image_files[sequence_number]
-            text = optimize_reel_prompt(nova_reel_system_prompt,shot['description'],ref_img,doc_bytes)
-        else:
-            text = optimize_reel_prompt_no_img(nova_reel_system_prompt,shot['description'],doc_bytes)
-        sequence_number += 1
-        logger.info("optimalized reel_prompt:"+text)
+        # if sequence_number == 0:
+        #     ref_img = image_files[sequence_number]
+        #     text = optimize_reel_prompt(nova_reel_system_prompt,shot['description'],ref_img,doc_bytes)
+        # else:
+        #     text = optimize_reel_prompt_no_img(nova_reel_system_prompt,shot['description'],doc_bytes)
+        # sequence_number += 1
+        text = f"{shot['prompt']}  {shot['cinematography']}"
+        logger.info("prompt for reel:"+text)
+        # logger.info("optimalized reel_prompt:"+text)
         reel_prompts.append(text)
     
     video_files = generate_video_sequnce(reel_prompts,image_files)
@@ -476,7 +477,7 @@ def generate_image(video_type_radio, user_prompt,num_shot):
         logger.info(f"Extension user prompt : {user_prompt}")
 
     if video_type_radio == '连续视频':
-        return generate_image_nova(user_prompt,video_type_radio)
+        return generate_image_nova(user_prompt,video_type_radio,num_shot)
     else:
         return create_divison_images(user_prompt,video_type_radio,num_shot)
 

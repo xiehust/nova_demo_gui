@@ -394,9 +394,14 @@ def upload_to_s3(local_file, bucket, s3_file):
 
 def generate_s3_url(bucket, s3_file):
     s3 = boto3.client('s3', region_name=aws_region_s3)
+    file_extension = s3_file.lower().split('.')[-1]
+    if file_extension == 'mp4':
+        params = {'Bucket': bucket, 'Key': s3_file,'ResponseContentType': 'video/mp4','ResponseContentDisposition': f'attachment; filename="{s3_file}"'}
+    elif file_extension == 'png':
+        params = {'Bucket': bucket, 'Key': s3_file}
     url = s3.generate_presigned_url('get_object',
-                                    Params={'Bucket': bucket, 'Key': s3_file},
-                                    ExpiresIn=3600*24*7)  # URL有效期为7天
+                                Params=params,
+                                ExpiresIn=3600*24*7)  # URL有效期为7天
     return url
 
 
